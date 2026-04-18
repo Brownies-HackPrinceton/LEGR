@@ -7,7 +7,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3099;
 const ORCHESTRATOR_WEBHOOK_URL =
   process.env.ORCHESTRATOR_WEBHOOK_URL || "http://127.0.0.1:8000/webhooks/imessage";
-const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || "3000", 10);
+const POLL_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || "5000", 10);
 
 // Suppress SDK init noise then restore
 const _log = console.log;
@@ -28,31 +28,47 @@ process.on("unhandledRejection", (reason) => {
   }
 });
 
-// Only forward messages that arrive after startup
-let lastProcessedAt = new Date();
 let dbAvailable = true;
+let polling = false;
 
-const recentSent = [];
-const addToRecent = (text) => {
-  recentSent.push(text);
-  if (recentSent.length > 50) recentSent.shift();
-};
+// ID-based deduplication: any message seen before startup (or already forwarded)
+// will be in this set and silently skipped.
+const seenMessageIds = new Set();
+
+async function initializeSeenIds() {
+  if (!dbAvailable) return;
+  try {
+    const result = await sdk.getMessages({ limit: 500, excludeOwnMessages: false });
+    const messages = Array.isArray(result) ? result : result?.messages || [];
+    for (const msg of messages) {
+      if (msg.id) seenMessageIds.add(msg.id);
+    }
+    console.log(`[bridge] Seeded ${seenMessageIds.size} existing message IDs — only new messages will be forwarded.`);
+  } catch (e) {
+    if (String(e).includes("DATABASE") || String(e).includes("database")) {
+      dbAvailable = false;
+      console.warn("[bridge] DB unavailable during init, polling disabled.");
+    } else {
+      console.warn("[bridge] Could not seed message IDs:", e.message);
+    }
+  }
+}
 
 async function pollIncoming() {
-  if (!dbAvailable) return;
+  if (!dbAvailable || polling) return;
+  polling = true;
   try {
     const result = await sdk.getMessages({ limit: 50, excludeOwnMessages: false });
     const messages = Array.isArray(result) ? result : result?.messages || [];
 
-    let latest = lastProcessedAt;
     for (const msg of messages) {
-      if (msg.isFromMe) {
-        // If the bot sent it, ignore it. If the user typed it from their own device, process it!
-        if (recentSent.includes(msg.text)) continue;
-      }
-      
-      const msgDate = msg.date ? new Date(msg.date) : null;
-      if (!msgDate || msgDate <= lastProcessedAt) continue;
+      // Never process messages sent by this machine (bot replies, user typing from Mac)
+      if (msg.isFromMe) continue;
+
+      // Skip anything we've already seen
+      if (!msg.id || seenMessageIds.has(msg.id)) continue;
+
+      seenMessageIds.add(msg.id);
 
       await fetch(ORCHESTRATOR_WEBHOOK_URL, {
         method: "POST",
@@ -62,35 +78,41 @@ async function pollIncoming() {
           body: msg.text || "",
           received_at: msg.date,
         }),
-      }).catch(() => {});
+      }).catch((err) => console.warn("[bridge] Orchestrator unreachable:", err.message));
 
-      if (msgDate > latest) latest = msgDate;
+      console.log(`[bridge] Forwarded msg ${msg.id} from ${msg.sender}`);
     }
-    lastProcessedAt = latest;
   } catch (e) {
     if (String(e).includes("DATABASE") || String(e).includes("database")) {
       dbAvailable = false;
       console.warn("[bridge] DB unavailable, polling stopped. POST /webhooks/incoming for inbound messages.");
     }
+  } finally {
+    polling = false;
   }
 }
 
-setInterval(pollIncoming, POLL_INTERVAL_MS);
+// Seed on startup, then begin polling
+initializeSeenIds().then(() => {
+  setInterval(pollIncoming, POLL_INTERVAL_MS);
+});
 
-app.get("/health", (_req, res) => res.json({ status: "ok" }));
+app.get("/health", (_req, res) => res.json({ status: "ok", seenIds: seenMessageIds.size, dbAvailable }));
 
-function looksLikeE164(value) {
-  return typeof value === "string" && /^\+\d{10,15}$/.test(value);
+function isValidRecipient(value) {
+  if (typeof value !== "string") return false;
+  const isE164 = /^\+\d{10,15}$/.test(value);
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  return isE164 || isEmail;
 }
 
 // Send plain text
 app.post("/send", async (req, res) => {
   const { to, text } = req.body || {};
   if (!to || !text) return res.status(400).json({ error: "missing_to_or_text" });
-  if (!looksLikeE164(to))
-    return res.status(400).json({ error: "to_must_be_e164", example: "+15551234567" });
+  if (!isValidRecipient(to))
+    return res.status(400).json({ error: "invalid_recipient", example: "+15551234567 or email@icloud.com" });
   try {
-    addToRecent(String(text));
     await sdk.send(asRecipient(to), String(text));
     res.json({ ok: true });
   } catch (e) {
@@ -102,12 +124,11 @@ app.post("/send", async (req, res) => {
 app.post("/send_poll", async (req, res) => {
   const { to, question, options } = req.body || {};
   if (!to || !question) return res.status(400).json({ error: "missing_to_or_question" });
-  if (!looksLikeE164(to))
-    return res.status(400).json({ error: "to_must_be_e164", example: "+15551234567" });
+  if (!isValidRecipient(to))
+    return res.status(400).json({ error: "invalid_recipient", example: "+15551234567 or email@icloud.com" });
   const opts = Array.isArray(options) && options.length ? options : ["Yes, proceed", "No, skip"];
   try {
     const fullText = `${question}\n\nReply:\nY - ${opts[0]}\nN - ${opts[1]}`;
-    addToRecent(fullText);
     await sdk.send(asRecipient(to), fullText);
     res.json({ ok: true });
   } catch (e) {

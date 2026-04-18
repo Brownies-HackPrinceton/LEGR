@@ -6,7 +6,7 @@ import { supabase, hasSupabase } from './supabase.js';
 import { metrics as mockMetrics, spendTrend as mockSpendTrend, activities as mockActivities } from '../data.js';
 
 const COMPANY_ID = '00000001-0000-4000-8000-000000000001';
-const ORCHESTRATOR = process.env.ORCHESTRATOR_URL || 'http://localhost:8000';
+const ORCHESTRATOR = import.meta.env.VITE_ORCHESTRATOR_URL || 'http://localhost:8000';
 
 // ── Transactions ──────────────────────────────────────────────────────────────
 

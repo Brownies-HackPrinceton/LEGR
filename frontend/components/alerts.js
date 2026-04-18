@@ -7,18 +7,19 @@
  * @param {Object} alert - { type: 'warning'|'critical'|'info', title, desc, action }
  */
 export function renderAlert(alert) {
-  const icons = {
-    warning: '⚠️',
-    critical: '🚨',
-    info: 'ℹ️',
+  const labels = {
+    warning: 'Warning',
+    critical: 'Critical',
+    info: 'Info',
   };
 
   return `
     <div class="alert-banner" id="alert-banner">
       <div class="alert-banner-icon ${alert.type}">
-        ${icons[alert.type] || '⚠️'}
+        <span></span>
       </div>
       <div class="alert-banner-content">
+        <div class="alert-banner-meta">${labels[alert.type] || 'Update'}</div>
         <div class="alert-banner-title">${alert.title}</div>
         <div class="alert-banner-desc">${alert.desc}</div>
       </div>

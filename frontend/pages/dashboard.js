@@ -63,7 +63,7 @@ export function renderDashboard() {
       ${metricsHTML}
 
       <div class="charts-grid">
-        <div class="chart-card">
+        <div class="chart-card chart-card-trend">
           <div class="chart-header">
             <div class="chart-title">
               <div class="chart-title-bar green"></div>
@@ -80,7 +80,7 @@ export function renderDashboard() {
           </div>
         </div>
 
-        <div class="chart-card">
+        <div class="chart-card chart-card-donut">
           <div class="chart-header">
             <div class="chart-title">
               <div class="chart-title-bar purple"></div>

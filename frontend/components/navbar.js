@@ -14,7 +14,10 @@ export function renderNavbar(activeTab, onTabChange) {
     <nav class="navbar" id="navbar">
       <a href="#" class="navbar-brand">
         <div class="navbar-logo">V</div>
-        <span class="navbar-title">Vertex</span>
+        <div class="navbar-brand-copy">
+          <span class="navbar-title">Vertex</span>
+          <span class="navbar-kicker">Fiscal command center</span>
+        </div>
       </a>
       
       <div class="navbar-nav" id="navbar-nav">
@@ -29,12 +32,8 @@ export function renderNavbar(activeTab, onTabChange) {
 
       <div class="navbar-actions">
         <button class="navbar-copilot" id="copilot-btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-            <path d="M2 17l10 5 10-5"/>
-            <path d="M2 12l10 5 10-5"/>
-          </svg>
-          AI CFO
+          <span class="navbar-copilot-dot"></span>
+          <span>AI CFO</span>
         </button>
         <div class="navbar-avatar" id="user-avatar">KP</div>
       </div>

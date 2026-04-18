@@ -13,9 +13,11 @@ export default defineConfig(({ mode }) => {
     },
     // So code using process.env.NEXT_PUBLIC_* (e.g. Flux Supabase client) works in Vite.
     define: {
-      'process.env.NEXT_PUBLIC_SUPABASE_URL': JSON.stringify(env.NEXT_PUBLIC_SUPABASE_URL ?? ''),
-      'process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY': JSON.stringify(env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''),
-      'process.env.ORCHESTRATOR_URL': JSON.stringify(env.ORCHESTRATOR_URL ?? 'http://localhost:8000'),
+      'process.env': {
+        NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL || '',
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+        ORCHESTRATOR_URL: env.ORCHESTRATOR_URL || 'http://localhost:8000'
+      }
     },
   }
 })
