@@ -1,0 +1,6 @@
+dedalus-labs
+supabase
+python-dotenv
+fastapi
+uvicorn
+httpx

@@ -1,0 +1,5 @@
+iMessage bridge listening on http://127.0.0.1:3099
+[bridge] No Full Disk Access — incoming message polling disabled. Grant FDA to Terminal/VS Code in System Settings → Privacy & Security.
+[bridge] DB unavailable, polling stopped. POST /webhooks/incoming for inbound messages.
+(node:36235) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 1)
+(Use `node --trace-warnings ...` to show where the warning was created)

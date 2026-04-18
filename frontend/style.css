@@ -1037,3 +1037,10 @@ tbody tr:last-child td {
 .mt-6 { margin-top: var(--space-6); }
 .mb-4 { margin-bottom: var(--space-4); }
 .mb-6 { margin-bottom: var(--space-6); }
+
+/* Ask Flux */
+.ask-flux-answer { transition: color 0.2s; }
+.ask-flux-answer.loading { color: #7c3aed; animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+.activity-badge { font-size: 11px; white-space: nowrap; padding: 2px 8px; border-radius: 12px; background: rgba(100,116,139,0.2); color: #94a3b8; }
+.empty-state { color: #64748b; font-size: 14px; padding: 16px 20px; }

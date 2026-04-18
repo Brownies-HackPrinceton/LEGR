@@ -1,0 +1,12 @@
+{
+  "name": "flux-supabase-client",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Supabase schema + typed client helpers for Flux (Next.js).",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.49.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
