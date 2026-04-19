@@ -13,6 +13,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from agents.ask_anything import ask_anything
+from integrations.knot import knot_router
+from integrations.knot.client import log_env_check as knot_log_env_check
 from orchestrator import route_transaction
 from services.command_router import route_command
 from services.imessage_sender import FOUNDER_PHONE, help_menu_text, send_boot_greeting, send_to_founder
@@ -21,6 +23,7 @@ from supabase_client import get_supabase
 
 @asynccontextmanager
 async def _lifespan(app: FastAPI):
+    knot_log_env_check()
     flag = os.getenv("IMESSAGE_BOOT_GREETING", "1").strip().lower()
     if flag in ("1", "true", "yes", "on"):
         await send_boot_greeting()
@@ -28,10 +31,27 @@ async def _lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=_lifespan)
+app.include_router(knot_router)
 
+# NOTE: ``allow_origins=["*"]`` is silently ignored by browsers when paired
+# with ``allow_credentials=True``. List each frontend origin explicitly so the
+# Next.js app on :3002 (and the legacy Vite app on :3000) can both call us.
+# Override at runtime via FLUX_CORS_ORIGINS="https://app.flux.dev,https://..."
+_default_cors = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3001",
+    "http://localhost:3002",
+    "http://127.0.0.1:3002",
+]
+_cors_env = os.getenv("FLUX_CORS_ORIGINS", "").strip()
+_allow_origins = (
+    [o.strip() for o in _cors_env.split(",") if o.strip()] if _cors_env else _default_cors
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows all origins (e.g. localhost:3000)
+    allow_origins=_allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

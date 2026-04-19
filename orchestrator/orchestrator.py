@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import os
-from typing import Any, Dict, List, Literal, NotRequired, Optional, TypedDict
+from typing import Any, Dict, List, Literal, Optional, TypedDict
+try:
+    from typing import NotRequired  # py311+
+except ImportError:  # py310 back-compat
+    from typing_extensions import NotRequired  # type: ignore
 
 from dedalus_labs import AsyncDedalus, DedalusRunner
 

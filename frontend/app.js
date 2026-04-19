@@ -12,6 +12,7 @@ import { renderDashboard, initDashboardCharts } from './pages/dashboard.js';
 import { renderAISpend, initAISpendCharts } from './pages/ai-spend.js';
 import { renderSaaSSprawl, initSaaSSprawlCharts } from './pages/saas-sprawl.js';
 import { renderCompliance, initComplianceCharts } from './pages/compliance.js';
+import { renderConnect, initConnect } from './pages/connect.js';
 
 // ── State ──
 let currentTab = 'dashboard';
@@ -22,6 +23,7 @@ const pages = {
   'ai-spend': { render: renderAISpend, init: initAISpendCharts },
   'saas-sprawl': { render: renderSaaSSprawl, init: initSaaSSprawlCharts },
   'compliance': { render: renderCompliance, init: initComplianceCharts },
+  'connect': { render: renderConnect, init: initConnect },
 };
 
 // ── Navigation handler ──

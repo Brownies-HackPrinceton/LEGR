@@ -8,6 +8,7 @@ export function renderNavbar(activeTab, onTabChange) {
     { id: 'ai-spend', label: 'AI Spend' },
     { id: 'saas-sprawl', label: 'SaaS Sprawl' },
     { id: 'compliance', label: 'Compliance' },
+    { id: 'connect', label: 'Connect' },
   ];
 
   return `
