@@ -15,7 +15,7 @@ export function renderNavbar(activeTab, onTabChange) {
       <a href="#" class="navbar-brand">
         <div class="navbar-logo"></div>
         <div class="navbar-brand-copy">
-          <div class="navbar-title">VERTEX</div>
+          <div class="navbar-title">LEGR</div>
           <div style="font-family: var(--font-mono); font-size: 10px; color: var(--text-secondary); letter-spacing: 0;">v2.6 · fiscal '26</div>
         </div>
       </a>

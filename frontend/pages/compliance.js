@@ -18,6 +18,7 @@ export function renderCompliance() {
     title: '2 Expenses Flagged · 2 Pending Review',
     desc: 'Mike R. $1,299 Best Buy purchase exceeds policy limit. Sarah C. $2,499 Apple Store — no PO number.',
     action: 'Review All',
+    command: 'show pending',
   });
 
   const metricsHTML = renderMetrics([
@@ -112,11 +113,6 @@ export function renderCompliance() {
             <div class="opportunity-detail">
               <span class="opportunity-detail-label">Reason</span>
               <span class="text-red">${exp.reason}</span>
-            </div>
-            <div style="display: flex; gap: 8px; margin-top: var(--space-4);">
-              <button class="brutal-btn" style="color: var(--green);">Approve</button>
-              <button class="brutal-btn" style="color: var(--red);">Reject</button>
-              <button class="brutal-btn">Ask Employee</button>
             </div>
           </div>
         `;

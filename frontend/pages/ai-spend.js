@@ -14,6 +14,7 @@ export function renderAISpend() {
     title: 'GPT-4 batch job detected — 38K calls on invoice classification',
     desc: 'Haiku would handle at 94% parity. Estimated savings: $2,840/mo. Deploy routing middleware?',
     action: 'Approve',
+    command: 'approve',
   });
 
   const metricsHTML = renderMetrics([

@@ -14,6 +14,7 @@ export function renderSaaSSprawl() {
     title: '2 Zombie Subscriptions · 4 Renewals in 14 days',
     desc: 'Midjourney ($200/mo) and Loom ($150/mo) have near-zero usage. Cursor renewal in 4 days — recommend downsizing.',
     action: 'Review',
+    command: 'show pending',
   });
 
   const metricsHTML = renderMetrics([

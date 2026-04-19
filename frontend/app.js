@@ -5,6 +5,7 @@
 
 import './style.css';
 import { renderNavbar, bindNavbarEvents } from './components/navbar.js';
+import { bindAlertActions } from './components/alerts.js';
 import { destroyAllCharts } from './components/charts.js';
 
 // Page imports
@@ -76,6 +77,9 @@ function renderApp() {
 
   // Apply theme class to current page
   applyTheme();
+
+  // Bind alert action buttons
+  bindAlertActions();
 
   // Initialize page-specific charts
   page.init();
