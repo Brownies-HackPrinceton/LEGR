@@ -27,7 +27,7 @@ export function renderAlert(alert) {
         <div class="alert-banner-title">${alert.title}</div>
         <div class="alert-banner-desc">${alert.desc}</div>
       </div>
-      ${alert.action ? `<button class="alert-banner-action" id="${actionId}" data-command="${alert.command || alert.action.toLowerCase()}">${alert.action}</button>` : ''}
+      ${alert.action ? `<button class="alert-banner-action" id="${actionId}" ${alert.navigate ? `data-navigate="${alert.navigate}"` : `data-command="${alert.command || alert.action.toLowerCase()}"`}>${alert.action}</button>` : ''}
     </div>
   `;
 }
@@ -35,6 +35,10 @@ export function renderAlert(alert) {
 export function bindAlertActions() {
   document.querySelectorAll('.alert-banner-action').forEach(btn => {
     btn.addEventListener('click', async () => {
+      if (btn.dataset.navigate) {
+        window.location.hash = btn.dataset.navigate;
+        return;
+      }
       const command = btn.dataset.command;
       const original = btn.textContent;
       btn.textContent = '...';

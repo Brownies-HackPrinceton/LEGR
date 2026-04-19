@@ -2,21 +2,17 @@
 // DASHBOARD PAGE — Main Overview
 // ============================================================
 
-import { renderAlert } from '../components/alerts.js';
 import { renderMetrics } from '../components/metrics.js';
 import { createLineChart, createDoughnutChart } from '../components/charts.js';
 import { metrics, spendTrend, activities } from '../data.js';
+import { fetchMetrics, fetchAlerts, fetchSpendTrend } from '../lib/api.js';
 
 export function renderDashboard() {
-  const alertHTML = renderAlert({
-    type: 'critical',
-    title: '3 Critical · 2 Renewals Soon',
-    desc: 'OpenAI batch job running GPT-4 on invoice classification — $2,840/mo potential savings identified',
-    action: 'View',
-  });
+  const alertHTML = ``;
 
   const metricsHTML = renderMetrics([
     {
+      id: 'totalMonthlySpend',
       label: 'TOTAL MONTHLY SPEND',
       value: `$${metrics.totalMonthlySpend.toLocaleString()}`,
       sub: 'Across all SaaS + AI',
@@ -27,6 +23,7 @@ export function renderDashboard() {
       changeDir: 'up',
     },
     {
+      id: 'identifiedSavings',
       label: 'IDENTIFIED SAVINGS',
       value: `$${metrics.identifiedSavings.toLocaleString()}`,
       sub: 'Per month recoverable',
@@ -37,6 +34,7 @@ export function renderDashboard() {
       changeDir: 'down',
     },
     {
+      id: 'activeSubscriptions',
       label: 'ACTIVE SUBSCRIPTIONS',
       value: metrics.activeSubscriptions.toString(),
       sub: `${metrics.ghostSeats} ghost seats detected`,
@@ -46,6 +44,7 @@ export function renderDashboard() {
       tag: 'ACT',
     },
     {
+      id: 'complianceFlags',
       label: 'COMPLIANCE FLAGS',
       value: metrics.complianceFlags.toString(),
       sub: `${metrics.pendingReview} pending review`,
@@ -75,7 +74,6 @@ export function renderDashboard() {
           <p>the fiscal pulse of your company, in real time</p>
         </div>
         <div class="dashboard-time-box">
-          <div class="sync-block" id="sync-time">SYNC --:--<br>---</div>
           <div class="time-block" id="current-time">--:--:--</div>
         </div>
       </div>
@@ -114,73 +112,95 @@ export function renderDashboard() {
         <div class="activity-header">
           <div class="chart-title yellow" style="color: black;">RECENT ACTIVITY</div>
         </div>
-        ${activityHTML}
+        <div id="activity-feed">${activityHTML}</div>
       </div>
     </div>
   `;
 }
 
 export function initDashboardCharts() {
-  // Spend trend
-  createLineChart('chart-spend-trend', spendTrend.labels, [
-    { label: 'Total Spend', data: spendTrend.datasets.total, color: 'rgb(34, 197, 94)', backgroundColor: '#EBE1FB' },
-  ], { dollarFormat: true });
+  const colorMap = { total: 'rgb(34, 197, 94)', ai: 'rgb(168, 85, 247)', saas: 'rgb(59, 130, 246)' };
+  const labelMap = { total: 'Total Spend', ai: 'AI Spend', saas: 'SaaS Spend' };
+  const bgMap    = { total: '#EBE1FB', ai: '#FEF08A', saas: '#BFDBFE' };
 
-  // Spend by category donut
-  createDoughnutChart(
-    'chart-spend-category',
-    ['AI APIs', 'SaaS Tools', 'Infrastructure', 'Expenses'],
-    [7230, 3270, 1360, 5340],
-    ['#a855f7', '#3b82f6', '#06b6d4', '#f59e0b']
-  );
+  // ── Step 1: Live metric cards ──────────────────────────────
+  fetchMetrics().then(data => {
+    const patch = (attr, val) => {
+      const el = document.querySelector(`[${attr}]`);
+      if (el) el.textContent = val;
+    };
+    patch('data-metric-value="totalMonthlySpend"', `$${data.totalMonthlySpend.toLocaleString()}`);
+    patch('data-metric-value="identifiedSavings"',  `$${data.identifiedSavings.toLocaleString()}`);
+    patch('data-metric-value="activeSubscriptions"', data.activeSubscriptions.toString());
+    patch('data-metric-value="complianceFlags"',     data.complianceFlags.toString());
+    patch('data-metric-sub="activeSubscriptions"',  `${data.ghostSeats} ghost seats detected`);
+  });
 
-  // Handle trend tab switching
-  const trendTabs = document.querySelectorAll('[data-trend]');
-  trendTabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      trendTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const key = tab.dataset.trend;
+  // ── Step 2: Live activity feed + alert banner ─────────────
+  fetchAlerts().then(alerts => {
+const feed = document.getElementById('activity-feed');
+    if (!feed || !alerts.length) return;
+    const pillarMeta = {
+      ai_spend:    { color: 'purple', label: 'AI SPEND' },
+      saas_sprawl: { color: 'blue',   label: 'SAAS' },
+      compliance:  { color: 'orange', label: 'COMPLIANCE' },
+    };
+    const timeAgo = iso => {
+      const m = Math.floor((Date.now() - new Date(iso)) / 60000);
+      if (m < 60) return `${m}m ago`;
+      const h = Math.floor(m / 60);
+      if (h < 24) return `${h}h ago`;
+      return `${Math.floor(h / 24)}d ago`;
+    };
+    feed.innerHTML = alerts.map(a => {
+      const meta = pillarMeta[a.pillar] || { color: 'red', label: 'ALERT' };
+      const badge = a.requires_action
+        ? `<span class="activity-badge" style="color:var(--orange);">ACTION NEEDED</span>` : '';
+      return `
+        <div class="activity-item">
+          <div class="activity-icon ${meta.color}"></div>
+          <div class="activity-content">
+            <div class="activity-text">${a.message}</div>
+            <div class="activity-time">${timeAgo(a.created_at)} · ${meta.label} ${badge}</div>
+          </div>
+        </div>`;
+    }).join('');
+  });
 
-      const colorMap = {
-        total: 'rgb(34, 197, 94)',
-        ai: 'rgb(168, 85, 247)',
-        saas: 'rgb(59, 130, 246)',
-      };
+  // ── Steps 3 & 4: Live spend trend chart + donut ───────────
+  fetchSpendTrend().then(trend => {
+    // Step 3: trend line
+    createLineChart('chart-spend-trend', trend.labels, [
+      { label: 'Total Spend', data: trend.datasets.total, color: colorMap.total, backgroundColor: bgMap.total },
+    ], { dollarFormat: true });
 
-      const labelMap = {
-        total: 'Total Spend',
-        ai: 'AI Spend',
-        saas: 'SaaS Spend',
-      };
+    // Step 4: donut — sum each pillar dataset
+    const sum = arr => arr.reduce((a, b) => a + b, 0);
+    createDoughnutChart(
+      'chart-spend-category',
+      ['AI APIs', 'SaaS Tools', 'Expenses'],
+      [sum(trend.datasets.ai), sum(trend.datasets.saas), sum(trend.datasets.expenses)],
+      ['#a855f7', '#3b82f6', '#f59e0b']
+    );
 
-      const bgMap = {
-        total: '#EBE1FB',
-        ai: '#FEF08A',     // light yellow
-        saas: '#BFDBFE',   // light blue
-      };
-
-      createLineChart('chart-spend-trend', spendTrend.labels, [
-        { label: labelMap[key], data: spendTrend.datasets[key], color: colorMap[key], backgroundColor: bgMap[key] },
-      ], { dollarFormat: true });
+    // Step 3: tab switching also uses live data
+    const trendTabs = document.querySelectorAll('[data-trend]');
+    trendTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        trendTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const key = tab.dataset.trend;
+        createLineChart('chart-spend-trend', trend.labels, [
+          { label: labelMap[key], data: trend.datasets[key], color: colorMap[key], backgroundColor: bgMap[key] },
+        ], { dollarFormat: true });
+      });
     });
   });
   // Initialize live clock
   const updateClock = () => {
     const now = new Date();
     
-    // Timezone 3-letter code (crude but works for demo)
-    const tz = now.toLocaleTimeString('en-us', {timeZoneName:'short'}).split(' ').pop();
-    
-    const syncEl = document.getElementById('sync-time');
     const timeEl = document.getElementById('current-time');
-    
-    if (syncEl) {
-      const hours = now.getHours().toString().padStart(2, '0');
-      const minutes = now.getMinutes().toString().padStart(2, '0');
-      syncEl.innerHTML = `SYNC ${hours}:${minutes}<br>${tz}`;
-    }
-    
     if (timeEl) {
       timeEl.innerText = now.toLocaleTimeString('en-US', { 
         hour12: false, 

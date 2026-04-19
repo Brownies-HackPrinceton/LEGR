@@ -16,9 +16,9 @@ export function renderMetrics(metrics) {
             <div class="metric-accent-dot bg-${m.dotColor}"></div>
           </div>
           <div class="metric-value-row">
-            <div class="metric-value color-${m.valueColor || 'black'}">${m.value}</div>
+            <div class="metric-value color-${m.valueColor || 'black'}" ${m.id ? `data-metric-value="${m.id}"` : ''}>${m.value}</div>
           </div>
-          <div class="metric-sub">
+          <div class="metric-sub" ${m.id ? `data-metric-sub="${m.id}"` : ''}>
             ${m.sub}
           </div>
           ${m.change ? `<div class="metric-change-block ${m.changeDir === 'up' ? 'up' : 'down'}">${m.changeDir === 'down' ? '↓' : '↑'} ${m.change}</div>` : ''}

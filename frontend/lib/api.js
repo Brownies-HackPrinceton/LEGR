@@ -41,11 +41,12 @@ export async function fetchMetrics() {
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
 
-  const [txnResp, seatResp, compResp, savingsResp] = await Promise.all([
+  const [txnResp, seatResp, compResp, savingsResp, subsResp] = await Promise.all([
     supabase.from('transactions').select('amount, pillar').eq('company_id', COMPANY_ID).gte('created_at', thirtyDaysAgo),
     supabase.from('seat_usage').select('id').eq('company_id', COMPANY_ID).eq('is_dormant', true),
     supabase.from('agent_alerts').select('id').eq('company_id', COMPANY_ID).eq('resolved', false).eq('requires_action', true),
     supabase.from('transactions').select('savings_identified').eq('company_id', COMPANY_ID),
+    supabase.from('subscription_renewals').select('id').eq('company_id', COMPANY_ID),
   ]);
 
   const txns = txnResp.data || [];
@@ -58,6 +59,7 @@ export async function fetchMetrics() {
     identifiedSavings: Math.round(identifiedSavings) || mockMetrics.identifiedSavings,
     ghostSeats: (seatResp.data || []).length || mockMetrics.ghostSeats,
     complianceFlags: (compResp.data || []).length || mockMetrics.complianceFlags,
+    activeSubscriptions: (subsResp.data || []).length || mockMetrics.activeSubscriptions,
   };
 }
 
@@ -104,6 +106,18 @@ export async function fetchSpendTrend() {
   return { labels, datasets: { total, ai, saas, expenses } };
 }
 
+// ── AI Usage ──────────────────────────────────────────────────────────────────
+
+export async function fetchAIUsage() {
+  if (!hasSupabase) return [];
+  const { data } = await supabase
+    .from('ai_usage')
+    .select('*')
+    .eq('company_id', COMPANY_ID)
+    .order('week_start', { ascending: false });
+  return data || [];
+}
+
 // ── Subscriptions ─────────────────────────────────────────────────────────────
 
 export async function fetchSubscriptions() {
@@ -137,6 +151,31 @@ export async function fetchPolicyActions(limit = 10) {
     .select('*')
     .eq('company_id', COMPANY_ID)
     .order('executed_at', { ascending: false })
+    .limit(limit);
+  return data || [];
+}
+
+// ── Employees ────────────────────────────────────────────────────────────────
+
+export async function fetchEmployees() {
+  if (!hasSupabase) return [];
+  const { data } = await supabase
+    .from('employees')
+    .select('id, name, role')
+    .eq('company_id', COMPANY_ID);
+  return data || [];
+}
+
+// ── Compliance transactions ───────────────────────────────────────────────────
+
+export async function fetchComplianceTransactions(limit = 30) {
+  if (!hasSupabase) return [];
+  const { data } = await supabase
+    .from('transactions')
+    .select('id, merchant, amount, status, memo, category, created_at, employee_id')
+    .eq('company_id', COMPANY_ID)
+    .eq('pillar', 'compliance')
+    .order('created_at', { ascending: false })
     .limit(limit);
   return data || [];
 }
