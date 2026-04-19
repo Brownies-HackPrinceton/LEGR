@@ -114,9 +114,9 @@ export function renderCompliance() {
               <span class="text-red">${exp.reason}</span>
             </div>
             <div style="display: flex; gap: 8px; margin-top: var(--space-4);">
-              <button class="alert-banner-action" style="background: var(--green-dim); border-color: rgba(34,197,94,0.3); color: var(--green); font-size: 0.75rem;">Approve</button>
-              <button class="alert-banner-action" style="background: var(--red-dim); border-color: rgba(239,68,68,0.3); color: var(--red); font-size: 0.75rem;">Reject</button>
-              <button class="alert-banner-action" style="font-size: 0.75rem;">Ask Employee</button>
+              <button class="brutal-btn" style="color: var(--green);">Approve</button>
+              <button class="brutal-btn" style="color: var(--red);">Reject</button>
+              <button class="brutal-btn">Ask Employee</button>
             </div>
           </div>
         `;

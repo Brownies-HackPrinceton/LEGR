@@ -1,0 +1,31 @@
+{
+  "vendor": "Cursor Master",
+  "vendor_email": "renewals@cursormaster.com",
+  "original_price": 500.0,
+  "target_discount_pct": 20.0,
+  "floor_discount_pct": 5.0,
+  "company_id": "00000001-0000-4000-8000-000000000001",
+  "thread_id": "",
+  "machine_id": "c4e37b60-2522-4c03-8969-5dfd3dfaa3d8",
+  "status": "waiting_reply",
+  "current_round": 1,
+  "current_offer_pct": null,
+  "subject_line": "Cursor Master renewal \u2014 pricing adjustment",
+  "thread": [
+    {
+      "direction": "outbound",
+      "body": "**Subject: Cursor Master Renewal \u2013 Pricing Discussion**\n\nHi [Name],\n\nOur Cursor Master subscription is coming up for renewal, and before we proceed, I wanted to have a quick conversation about pricing. As a early-stage startup, we're under real pressure to optimize every line of our budget, and we're seeing competitive alternatives in the market at meaningfully lower price points. The $500/mo rate is becoming difficult to justify without some adjustment.\n\nI'd like to propose renewing at $400/mo \u2014 a 20% reduction \u2014 in exchange for committing to an annual contract upfront rather than continuing month-to-month. That's a guaranteed $4,800 paid in full, which I think is a fair trade for both sides. We value the product and want to stay, but I need the numbers to work.\n\nCan you confirm whether this is something you're able to accommodate? Happy to jump on a quick call if that's easier. Looking forward to finding a path forward.\n\nBest,\n[Your Name]\n[Company] | [Email] | [Phone]",
+      "timestamp": "2026-04-19T01:57:42.725709+00:00",
+      "round_num": 1,
+      "classification": null
+    }
+  ],
+  "leverage_used": [
+    "competitive_alternatives",
+    "annual_commitment"
+  ],
+  "reasoning_log": [],
+  "created_at": "2026-04-19T01:57:29.691654+00:00",
+  "updated_at": "2026-04-19T01:57:42.725738+00:00",
+  "closed_at": null
+}

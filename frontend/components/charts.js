@@ -5,19 +5,21 @@
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
-// Global Chart.js defaults for our dark theme
-Chart.defaults.color = '#8a8a9a';
-Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.06)';
-Chart.defaults.font.family = "'Inter', sans-serif";
+// Global Chart.js defaults for brutalist light theme
+Chart.defaults.color = '#000000';
+Chart.defaults.borderColor = '#E0DCD5';
+Chart.defaults.font.family = "'Helvetica Neue', Arial, sans-serif";
 Chart.defaults.font.size = 11;
 Chart.defaults.plugins.legend.display = false;
-Chart.defaults.plugins.tooltip.backgroundColor = '#1e1e26';
-Chart.defaults.plugins.tooltip.borderColor = 'rgba(255, 255, 255, 0.1)';
+Chart.defaults.plugins.tooltip.backgroundColor = '#FFFFFF';
+Chart.defaults.plugins.tooltip.titleColor = '#000000';
+Chart.defaults.plugins.tooltip.bodyColor = '#000000';
+Chart.defaults.plugins.tooltip.borderColor = '#000000';
 Chart.defaults.plugins.tooltip.borderWidth = 1;
 Chart.defaults.plugins.tooltip.padding = 10;
-Chart.defaults.plugins.tooltip.cornerRadius = 8;
-Chart.defaults.plugins.tooltip.titleFont = { family: "'Inter', sans-serif", size: 12, weight: '600' };
-Chart.defaults.plugins.tooltip.bodyFont = { family: "'Inter', sans-serif", size: 11 };
+Chart.defaults.plugins.tooltip.cornerRadius = 0;
+Chart.defaults.plugins.tooltip.titleFont = { family: "'Helvetica Neue', sans-serif", size: 12, weight: '700' };
+Chart.defaults.plugins.tooltip.bodyFont = { family: "'Helvetica Neue', sans-serif", size: 11 };
 
 // Store chart instances for cleanup
 const chartInstances = {};
@@ -43,23 +45,23 @@ export function createLineChart(canvasId, labels, datasets, options = {}) {
     const ctx = canvas.getContext('2d');
 
     const chartDatasets = datasets.map(ds => {
-      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      gradient.addColorStop(0, ds.color.replace(')', ', 0.2)').replace('rgb', 'rgba'));
-      gradient.addColorStop(1, ds.color.replace(')', ', 0.01)').replace('rgb', 'rgba'));
-
       return {
         label: ds.label,
         data: ds.data,
         borderColor: ds.color,
-        backgroundColor: options.fill !== false ? gradient : 'transparent',
+        backgroundColor: options.fill !== false ? (ds.backgroundColor || '#EBE1FB') : 'transparent',
         borderWidth: 2,
         fill: options.fill !== false,
-        tension: 0.4,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: ds.color,
-        pointHoverBorderColor: '#1e1e26',
+        tension: 0, // sharp brutalist lines
+        pointStyle: 'rect',
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#FFB100', // Yellow square boxes
+        pointBorderColor: '#000000',
+        pointHoverBackgroundColor: '#FFB100',
+        pointHoverBorderColor: '#000000',
         pointHoverBorderWidth: 2,
+        borderDash: [],
       };
     });
 
@@ -77,15 +79,19 @@ export function createLineChart(canvasId, labels, datasets, options = {}) {
           x: {
             grid: { display: false },
             ticks: { 
+              font: { family: "'Courier New', monospace" },
               maxRotation: 0,
               maxTicksLimit: 8,
             },
           },
           y: {
             grid: {
-              color: 'rgba(255, 255, 255, 0.04)',
+              color: '#dcdcdc',
+              drawBorder: true,
+              borderDash: [2, 4],
             },
             ticks: {
+              font: { family: "'Courier New', monospace" },
               callback: (v) => options.dollarFormat ? `$${v.toLocaleString()}` : v.toLocaleString(),
               maxTicksLimit: 5,
             },
@@ -98,6 +104,13 @@ export function createLineChart(canvasId, labels, datasets, options = {}) {
               label: (ctx) => {
                 const val = ctx.parsed.y;
                 return `${ctx.dataset.label}: ${options.dollarFormat ? '$' + val.toLocaleString() : val.toLocaleString()}`;
+              },
+              labelColor: (ctx) => {
+                return {
+                  borderColor: '#000000',
+                  backgroundColor: ctx.dataset.borderColor,
+                  borderWidth: 2,
+                };
               }
             }
           }
@@ -130,16 +143,16 @@ export function createDoughnutChart(canvasId, labels, data, colors, options = {}
         datasets: [{
           data,
           backgroundColor: colors,
-          borderColor: '#151519',
-          borderWidth: 3,
-          hoverBorderColor: '#22222a',
-          hoverOffset: 6,
+          borderColor: '#000000',
+          borderWidth: 2,
+          hoverBorderColor: '#000000',
+          hoverOffset: 0,
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        cutout: '68%',
+        cutout: '45%', // thicker for brutalism
         plugins: {
           legend: {
             display: true,
@@ -147,9 +160,9 @@ export function createDoughnutChart(canvasId, labels, data, colors, options = {}
             labels: {
               padding: 16,
               usePointStyle: true,
-              pointStyle: 'circle',
-              font: { size: 11, weight: '500' },
-              color: '#8a8a9a',
+              pointStyle: 'rect',
+              font: { family: "'Courier New', monospace", size: 14, weight: '700' },
+              color: '#000000',
             }
           },
           tooltip: {
@@ -189,7 +202,9 @@ export function createBarChart(canvasId, labels, datasets, options = {}) {
       label: ds.label,
       data: ds.data,
       backgroundColor: ds.color,
-      borderRadius: 4,
+      borderColor: '#000000',
+      borderWidth: 2,
+      borderRadius: 0,
       borderSkipped: false,
       barPercentage: 0.6,
       categoryPercentage: 0.7,
@@ -212,7 +227,9 @@ export function createBarChart(canvasId, labels, datasets, options = {}) {
           },
           y: {
             grid: {
-              color: 'rgba(255, 255, 255, 0.04)',
+              color: '#dcdcdc',
+              drawBorder: true,
+              borderDash: [2, 4],
             },
             ticks: {
               callback: (v) => options.dollarFormat ? `$${v.toLocaleString()}` : v,

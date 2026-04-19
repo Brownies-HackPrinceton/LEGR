@@ -1,0 +1,31 @@
+{
+  "vendor": "Cursor Premium",
+  "vendor_email": "renewals@cursorpremium.com",
+  "original_price": 500.0,
+  "target_discount_pct": 20.0,
+  "floor_discount_pct": 5.0,
+  "company_id": "00000001-0000-4000-8000-000000000001",
+  "thread_id": "",
+  "machine_id": "3d90c6ca-f895-4db3-9701-28e9ebd251d0",
+  "status": "waiting_reply",
+  "current_round": 1,
+  "current_offer_pct": null,
+  "subject_line": "Cursor Premium renewal \u2014 pricing adjustment",
+  "thread": [
+    {
+      "direction": "outbound",
+      "body": "**Subject: Cursor Premium Renewal \u2013 Pricing Discussion**\n\nHi [Account Manager's Name],\n\nWe're coming up on our Cursor Premium renewal and want to continue the relationship, but need to make the numbers work. As an early-stage startup, every line of our budget is scrutinized, and we're seeing competitive options from GitHub Copilot and others that come in meaningfully below our current $500/month rate.\n\nWe'd like to stay with Cursor \u2014 the product works well for our team \u2014 but we need to get to **$400/month (a 20% reduction)** to justify the renewal. In exchange, we're happy to move from monthly to an **annual commitment**, which gives you guaranteed revenue and eliminates churn risk on your end.\n\nCan you confirm whether you can accommodate this pricing? I'd like to get this resolved before our renewal date of **[date]**. Happy to jump on a quick call if that's easier.\n\nBest,\n[Your Name]\n[Title] | [Company]\n[Phone/Email]",
+      "timestamp": "2026-04-19T01:56:49.382214+00:00",
+      "round_num": 1,
+      "classification": null
+    }
+  ],
+  "leverage_used": [
+    "competitive_alternatives",
+    "annual_commitment"
+  ],
+  "reasoning_log": [],
+  "created_at": "2026-04-19T01:56:40.404628+00:00",
+  "updated_at": "2026-04-19T01:56:49.382253+00:00",
+  "closed_at": null
+}

@@ -34,6 +34,9 @@ from dedalus_labs import AsyncDedalus, DedalusRunner
 from flux_persona import FLUX_PERSONA
 from supabase_client import get_supabase
 
+# Avoid circular imports at module level
+from services.memory import get_chat_history, get_relevant_memories, save_chat_message
+
 _COMPANY_ID_DEFAULT = os.getenv("FLUX_COMPANY_ID", "00000001-0000-4000-8000-000000000001")
 
 # ── Cache ─────────────────────────────────────────────────────────────────────
@@ -252,6 +255,46 @@ def _run_savings_total(company_id: str) -> dict[str, Any]:
     return {"from_agents": txn_savings, "from_policy": policy_savings, "total": txn_savings + policy_savings}
 
 
+def _run_overview_brief(company_id: str) -> dict[str, Any]:
+    # 7 days ago, 14 days ago, +7 days
+    now = datetime.now(timezone.utc)
+    lw_start = (now - timedelta(days=7)).isoformat()
+    pw_start = (now - timedelta(days=14)).isoformat()
+    nw_end = (now + timedelta(days=7)).date().isoformat()
+    today = now.date().isoformat()
+
+    db = get_supabase()
+
+    # Spend
+    lw_txns = db.table("transactions").select("amount, merchant").eq("company_id", company_id).gte("created_at", lw_start).execute().data or []
+    pw_txns = db.table("transactions").select("amount, merchant").eq("company_id", company_id).gte("created_at", pw_start).lt("created_at", lw_start).execute().data or []
+    
+    lw_spend = sum(float(t.get("amount") or 0) for t in lw_txns)
+    pw_spend = sum(float(t.get("amount") or 0) for t in pw_txns)
+    
+    lw_merchants = set(t.get("merchant") for t in lw_txns)
+    pw_merchants = set(t.get("merchant") for t in pw_txns)
+    new_merchants = list(lw_merchants - pw_merchants)
+
+    # Renewals
+    ren = db.table("subscription_renewals").select("*").eq("company_id", company_id).gte("renewal_date", today).lte("renewal_date", nw_end).execute().data or []
+    ren_total = sum(float(r.get("current_monthly_cost") or 0) for r in ren)
+
+    # Policy actions
+    pol = db.table("policy_actions").select("*").eq("company_id", company_id).gte("executed_at", lw_start).execute().data or []
+    total_saved = sum(float(p.get("amount") or 0) for p in pol if "cancel" in str(p.get("action_type")))
+
+    return {
+        "spend_last_7_days": lw_spend,
+        "spend_prior_7_days": pw_spend,
+        "spend_pct_change": round(((lw_spend - pw_spend) / pw_spend * 100) if pw_spend else 0, 1),
+        "new_saas_found": new_merchants,
+        "upcoming_renewals_count": len(ren),
+        "upcoming_renewals_cost": ren_total,
+        "auto_handled_actions_count": len(pol),
+        "total_saved_last_7_days": total_saved
+    }
+
 # ── Intent classifier + response formatter ────────────────────────────────────
 
 _INTENT_PROMPT = """
@@ -266,26 +309,75 @@ Intents:
   recent_charges    – list of transactions by amount/date (extract: min_amount=number, period="this_week"|"last_week"|"last_month")
   employee_spend    – an employee's expense total (extract: employee=name, period="this_quarter"|"last_month"|"this_month")
   upcoming_renewals – subscription renewals (extract: days=30|60|90)
-  policy_actions    – what Flux did autonomously (extract: period="this_week"|"last_month")
   savings_total     – all savings identified
-  general           – anything else
+  overview_brief    – user wants a weekly summary, status update, or Monday brief
+  general           – asking for data/metrics that require querying the Postgres database
+  conversation      – general chit-chat, hello, needing help, non-data queries, personal assistant queries
 
 Return ONLY a JSON object: {{"intent":"...","vendor":null,"tool":null,"employee":null,"min_amount":0,"period":"last_month","days":30}}
 """
 
 _RESPONSE_PROMPT = """
-You are Flux — a financial agent texting a startup founder via iMessage.
+You are Celsius, a friendly and highly capable personal AI assistant for a startup founder via iMessage.
 
 Rules:
-- Lead with the number or the concrete fact. Nothing before it.
-- One to three short sentences max. Stop when you're done.
-- No greetings, no "Sure!", no "Based on the data", no "Let me know if you need more".
-- Dollar amounts: $X or $Xk format.
-- If data is empty or zero, say so in one line. Don't apologize.
+- Be conversational, helpful, and natural—as if you are their personal chief of staff texting them.
+- Present data clearly, but wrap it in a friendly, engaging tone. 
+- You can use greetings ("Sure!", "Here is the data") and natural sign-offs ("Let me know if you need anything else!").
+- Do not be robotic or overly terse. Be warmly professional.
+- Whenever appropriate, conclude by asking if there's any other help they need in the meantime.
+- IF responding to an OVERVIEW BRIEF, strongly mimic this exact markdown format:
+   Monday brief.
+   💰 Spend: $Xk last week (±X% vs prior). 
+   🔍 Found: X new SaaS ([vendors])
+   ⚠️ Attention: X renewals this week ($Xk total).
+   ✅ Handled for you: X actions. Total saved: $X.
+
+Conversation Context:
+{context}
 
 Question: {question}
 Data: {data}
 """
+
+
+async def build_final_prompt(company_id: str, chat_id: str, question: str) -> str:
+    """Assembles the stateful system prompt combining memory, history, and machines."""
+    # 1. Short-term history
+    history = await get_chat_history(chat_id)
+    history_text = "\n".join([f"{msg['role'].upper()}: {msg['content']}" for msg in history]) if history else "No previous messages."
+    
+    # 2. Long-term memory (RAG)
+    memories = await get_relevant_memories(question, company_id)
+    memory_text = "\n".join([f"• {m['content']}" for m in memories]) if memories else "No relevant past events."
+    
+    # 3. Active Machines
+    resp = (
+        get_supabase()
+        .table("active_machines")
+        .select("vendor, status")
+        .eq("company_id", company_id)
+        .in_("status", ["running", "sleeping"])
+        .execute()
+    )
+    machines = resp.data or []
+    machines_text = "\n".join([f"- Negotiating {m['vendor']} ({m['status']})" for m in machines]) if machines else "None"
+    
+    return f"""
+============= CONTEXT STRINGS =============
+[ACTIVE MACHINES]
+{machines_text}
+
+[RELEVANT MEMORIES]
+{memory_text}
+
+[RECENT CHAT HISTORY]
+{history_text}
+
+[CURRENT MESSAGE]
+USER: {question}
+==========================================="""
+
 
 
 async def _classify(question: str, api_key: str) -> dict[str, Any]:
@@ -304,17 +396,47 @@ async def _classify(question: str, api_key: str) -> dict[str, Any]:
         return {"intent": "general"}
 
 
-async def _format_response(question: str, data: Any, api_key: str) -> str:
+async def _format_response(question: str, data: Any, api_key: str, context: str = "") -> str:
     client = AsyncDedalus(api_key=api_key)
     runner = DedalusRunner(client)
     preview = json.dumps(data, default=str)[:800]
     resp = await runner.run(
-        input=_RESPONSE_PROMPT.format(question=question, data=preview),
+        input=_RESPONSE_PROMPT.format(question=question, data=preview, context=context),
         model="anthropic/claude-haiku-4-5",
         max_tokens=120,
         instructions=FLUX_PERSONA,
     )
     return (resp.final_output or "").strip()
+
+
+async def _openai_chat_fallback(question: str, context: str) -> str:
+    """Uses OpenAI generic capabilities to answer questions outside domain."""
+    import os
+    from openai import AsyncOpenAI
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return "I'm sorry, I don't have the answer to that, and my OpenAI API keys are not configured to fall back to general knowledge!"
+    
+    client = AsyncOpenAI(api_key=api_key)
+    prompt = f"""
+{FLUX_PERSONA}
+
+You are handling a conversational fallback. The user either asked a question not related to their exact internal databases, or started a general chat. Answer naturally using your broad AI knowledge.
+
+{context}
+"""
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": question}
+            ],
+            max_tokens=300,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        return f"I tried checking OpenAI, but couldn't reach it: {e}"
 
 
 async def _fallback_flux_query(company_id: str, question: str, api_key: str) -> Optional[str]:
@@ -342,9 +464,10 @@ async def _fallback_flux_query(company_id: str, question: str, api_key: str) -> 
     try:
         result = get_supabase().rpc("flux_query", {"query_sql": sql}).execute()
         rows = result.data or []
-        return await _format_response(question, rows, api_key)
+        # Not injecting the heavy context into format response here to save tokens on trivial SQL fallbacks
+        return await _format_response(question, rows, api_key, context="")
     except Exception as e:
-        return f"Couldn't run that query: {e}"
+        return None
 
 
 # ── Main entry point ──────────────────────────────────────────────────────────
@@ -363,7 +486,12 @@ async def ask_anything(question: str, company_id: str) -> str:
     if not api_key:
         return "DEDALUS_API_KEY not set."
 
-    params = await _classify(question, api_key)
+    # Provide context building (dummy chat_id is OK if ask_anything is not passed the phone number)
+    # the overarching history is captured in main.py, but we build the prompt context here for intent/generation.
+    context = await build_final_prompt(company_id, os.getenv("IMESSAGE_FOUNDER_PHONE", "founder"), question)
+
+    # Classify with context injected into the question
+    params = await _classify(context + "\n\n" + question, api_key)
     intent = params.get("intent", "general")
     period = params.get("period") or "last_month"
 
@@ -409,14 +537,26 @@ async def ask_anything(question: str, company_id: str) -> str:
     elif intent == "savings_total":
         data = await asyncio.to_thread(_run_savings_total, company_id)
 
+    elif intent == "overview_brief":
+        data = await asyncio.to_thread(_run_overview_brief, company_id)
+
+    elif intent == "conversation":
+        # Bypass SQL entirely for generic chat
+        pass
+
     else:
         answer = await _fallback_flux_query(company_id, question, api_key)
         if answer:
             await asyncio.to_thread(_cache_write, company_id, question, answer)
-        elapsed = round((time.monotonic() - start) * 1000)
-        return answer or "I couldn't find an answer to that."
+            elapsed = round((time.monotonic() - start) * 1000)
+            return answer
 
-    answer = await _format_response(question, data, api_key)
+    # If it was a conversation, matched intent, or SQL fallback failed, drop through and generate conversational response
+    if data is None:
+        answer = await _openai_chat_fallback(question, context=context)
+    else:
+        answer = await _format_response(question, data, api_key, context=context)
+        
     await asyncio.to_thread(_cache_write, company_id, question, answer)
 
     elapsed = round((time.monotonic() - start) * 1000)

@@ -10,18 +10,19 @@ export function renderMetrics(metrics) {
   return `
     <div class="metrics-grid">
       ${metrics.map(m => `
-        <div class="metric-card ${m.color || ''}">
+        <div class="metric-card bg-${m.color || 'white'}">
           <div class="metric-card-top">
             <div class="metric-label">${m.label}</div>
-            <div class="metric-accent-dot"></div>
+            <div class="metric-accent-dot bg-${m.dotColor}"></div>
           </div>
           <div class="metric-value-row">
-            <div class="metric-value ${m.color || 'white'}">${m.value}</div>
-            ${m.change ? `<span class="metric-change ${m.changeDir || ''}">${m.changeDir === 'up' ? '↑' : '↓'} ${m.change}</span>` : ''}
+            <div class="metric-value color-${m.valueColor || 'black'}">${m.value}</div>
           </div>
           <div class="metric-sub">
             ${m.sub}
           </div>
+          ${m.change ? `<div class="metric-change-block ${m.changeDir === 'up' ? 'up' : 'down'}">${m.changeDir === 'down' ? '↓' : '↑'} ${m.change}</div>` : ''}
+          <div class="metric-corner-tag">${m.tag}</div>
         </div>
       `).join('')}
     </div>

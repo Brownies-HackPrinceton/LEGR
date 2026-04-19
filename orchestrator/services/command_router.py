@@ -123,31 +123,49 @@ async def _handle_negotiate(company_id: str, vendor: str) -> dict[str, Any]:
     subs = await asyncio.to_thread(_fetch_subscription, company_id, vendor)
     current_price = float(subs[0].get("current_monthly_cost") or 500) if subs else 500.0
     vendor_name = subs[0].get("vendor", vendor) if subs else vendor
+    seats_paid = int(subs[0].get("seats_paid") or 0) if subs else 0
+    seats_active = int(subs[0].get("seats_active") or 0) if subs else 0
+    renewal_date = subs[0].get("renewal_date", "unknown") if subs else "unknown"
 
-    result = await negotiate_agent(vendor_name, current_price, 15.0, company_id)
-    draft = result.get("email_draft", "")
+    target_pct = 20.0  # Default target discount
 
-    # Start negotiation thread (pending state)
-    from services.negotiation_sm import start_negotiation
-    thread = await start_negotiation(
-        company_id=company_id,
-        vendor=vendor_name,
-        original_price=current_price,
-        target_pct=15.0,
-        draft_email=draft,
-        floor_pct=5.0,
+    # Build a compelling renewal alert with data
+    savings_est = current_price * (target_pct / 100)
+    seat_info = ""
+    if seats_paid and seats_active and seats_paid > seats_active:
+        seat_info = f"\n📊 Seats: {seats_paid} paid, {seats_active} active ({seats_paid - seats_active} dormant)"
+
+    alert_msg = (
+        f"⏰ {vendor_name} renewal — ${current_price:,.0f}/mo"
+        f"{seat_info}"
+        f"\n📅 Renewal: {renewal_date}"
+        f"\n💰 Target: {target_pct:.0f}% discount (save ~${savings_est:,.0f}/mo)"
+        f"\n\nLaunch negotiation Machine? Reply Y to start."
     )
-    thread_id = thread.get("id", "")
 
-    # Show draft preview — ask for approval
-    preview = draft[:300] + ("..." if len(draft) > 300 else "")
+    # Create a pending alert with metadata for the Machine
+    get_supabase().table("agent_alerts").insert({
+        "company_id": company_id,
+        "pillar": "saas_sprawl",
+        "alert_type": "negotiate_pending",
+        "vendor": vendor_name,
+        "message": alert_msg,
+        "requires_action": True,
+        "action_prompt": "Launch negotiation Machine?",
+        "metadata": json.dumps({
+            "price": current_price,
+            "target_pct": target_pct,
+            "vendor": vendor_name,
+            "seats_paid": seats_paid,
+            "seats_active": seats_active,
+        }),
+    }).execute()
+
     return {
-        "reply": f"Negotiation email drafted for {vendor_name}:\n\n{preview}\n\nReply Y to send.",
+        "reply": alert_msg,
         "pillar": "saas_sprawl",
         "action": "negotiate_pending",
-        "thread_id": thread_id,
         "vendor": vendor_name,
-        "draft": draft,
     }
 
 

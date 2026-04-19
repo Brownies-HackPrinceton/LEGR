@@ -15,6 +15,22 @@ import { renderCompliance, initComplianceCharts } from './pages/compliance.js';
 
 // ── State ──
 let currentTab = 'dashboard';
+let currentTheme = localStorage.getItem('theme') || 'brutalist';
+
+// ── Theme handler ──
+function toggleTheme() {
+  currentTheme = currentTheme === 'brutalist' ? 'minimal' : 'brutalist';
+  localStorage.setItem('theme', currentTheme);
+  applyTheme();
+}
+
+function applyTheme() {
+  if (currentTheme === 'minimal') {
+    document.body.classList.add('theme-minimal');
+  } else {
+    document.body.classList.remove('theme-minimal');
+  }
+}
 
 // ── Page registry ──
 const pages = {
@@ -38,8 +54,12 @@ function navigateTo(tabId) {
 function renderApp() {
   const app = document.getElementById('app');
 
-  // Destroy existing charts before re-rendering
+  // Destroy existing charts and timers before re-rendering
   destroyAllCharts();
+  if (window.dashboardClock) {
+    clearInterval(window.dashboardClock);
+    window.dashboardClock = null;
+  }
 
   const page = pages[currentTab];
   if (!page) return;
@@ -52,7 +72,10 @@ function renderApp() {
   `;
 
   // Bind nav events
-  bindNavbarEvents(navigateTo);
+  bindNavbarEvents(navigateTo, toggleTheme);
+
+  // Apply theme class to current page
+  applyTheme();
 
   // Initialize page-specific charts
   page.init();

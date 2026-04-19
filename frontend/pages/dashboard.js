@@ -17,32 +17,42 @@ export function renderDashboard() {
 
   const metricsHTML = renderMetrics([
     {
-      label: 'Total Monthly Spend',
+      label: 'TOTAL MONTHLY SPEND',
       value: `$${metrics.totalMonthlySpend.toLocaleString()}`,
       sub: 'Across all SaaS + AI',
       color: 'white',
+      dotColor: 'red',
+      tag: 'TOT',
       change: '12%',
       changeDir: 'up',
     },
     {
-      label: 'Identified Savings',
+      label: 'IDENTIFIED SAVINGS',
       value: `$${metrics.identifiedSavings.toLocaleString()}`,
       sub: 'Per month recoverable',
-      color: 'green',
-      change: '$2,840 new',
+      color: 'yellow',
+      dotColor: 'green',
+      tag: 'IDS',
+      change: '$2,840 NEW',
       changeDir: 'down',
     },
     {
-      label: 'Active Subscriptions',
+      label: 'ACTIVE SUBSCRIPTIONS',
       value: metrics.activeSubscriptions.toString(),
       sub: `${metrics.ghostSeats} ghost seats detected`,
-      color: 'purple',
+      color: 'white',
+      valueColor: 'blue',
+      dotColor: 'blue',
+      tag: 'ACT',
     },
     {
-      label: 'Compliance Flags',
+      label: 'COMPLIANCE FLAGS',
       value: metrics.complianceFlags.toString(),
       sub: `${metrics.pendingReview} pending review`,
-      color: 'orange',
+      color: 'white',
+      valueColor: 'red',
+      dotColor: 'yellow',
+      tag: 'CMP',
     },
   ]);
 
@@ -59,16 +69,24 @@ export function renderDashboard() {
 
   return `
     <div class="page" id="page-dashboard">
+      <div class="dashboard-header-block">
+        <div class="dashboard-title-box">
+          <h1>Command console</h1>
+          <p>the fiscal pulse of your company, in real time</p>
+        </div>
+        <div class="dashboard-time-box">
+          <div class="sync-block" id="sync-time">SYNC --:--<br>---</div>
+          <div class="time-block" id="current-time">--:--:--</div>
+        </div>
+      </div>
+
       ${alertHTML}
       ${metricsHTML}
 
       <div class="charts-grid">
         <div class="chart-card chart-card-trend">
           <div class="chart-header">
-            <div class="chart-title">
-              <div class="chart-title-bar green"></div>
-              <h3>Spend Trend (30 Days)</h3>
-            </div>
+            <div class="chart-title blue">SPEND TREND - 30 DAYS</div>
             <div class="chart-tabs">
               <button class="chart-tab active" data-trend="total">Total</button>
               <button class="chart-tab" data-trend="ai">AI</button>
@@ -78,27 +96,23 @@ export function renderDashboard() {
           <div class="chart-body">
             <canvas id="chart-spend-trend"></canvas>
           </div>
+          <div class="chart-fig-label">FIG. 01</div>
         </div>
 
         <div class="chart-card chart-card-donut">
           <div class="chart-header">
-            <div class="chart-title">
-              <div class="chart-title-bar purple"></div>
-              <h3>Spend by Category</h3>
-            </div>
+            <div class="chart-title red">SPEND BY CATEGORY</div>
           </div>
           <div class="chart-body donut">
             <canvas id="chart-spend-category"></canvas>
           </div>
+          <div class="chart-fig-label">FIG. 02</div>
         </div>
       </div>
 
       <div class="activity-card">
         <div class="activity-header">
-          <h3>
-            <div class="chart-title-bar blue" style="width: 3px; height: 20px; border-radius: 9999px;"></div>
-            Recent Activity
-          </h3>
+          <div class="chart-title yellow" style="color: black;">RECENT ACTIVITY</div>
         </div>
         ${activityHTML}
       </div>
@@ -109,7 +123,7 @@ export function renderDashboard() {
 export function initDashboardCharts() {
   // Spend trend
   createLineChart('chart-spend-trend', spendTrend.labels, [
-    { label: 'Total Spend', data: spendTrend.datasets.total, color: 'rgb(34, 197, 94)' },
+    { label: 'Total Spend', data: spendTrend.datasets.total, color: 'rgb(34, 197, 94)', backgroundColor: '#EBE1FB' },
   ], { dollarFormat: true });
 
   // Spend by category donut
@@ -140,9 +154,46 @@ export function initDashboardCharts() {
         saas: 'SaaS Spend',
       };
 
+      const bgMap = {
+        total: '#EBE1FB',
+        ai: '#FEF08A',     // light yellow
+        saas: '#BFDBFE',   // light blue
+      };
+
       createLineChart('chart-spend-trend', spendTrend.labels, [
-        { label: labelMap[key], data: spendTrend.datasets[key], color: colorMap[key] },
+        { label: labelMap[key], data: spendTrend.datasets[key], color: colorMap[key], backgroundColor: bgMap[key] },
       ], { dollarFormat: true });
     });
   });
+  // Initialize live clock
+  const updateClock = () => {
+    const now = new Date();
+    
+    // Timezone 3-letter code (crude but works for demo)
+    const tz = now.toLocaleTimeString('en-us', {timeZoneName:'short'}).split(' ').pop();
+    
+    const syncEl = document.getElementById('sync-time');
+    const timeEl = document.getElementById('current-time');
+    
+    if (syncEl) {
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      syncEl.innerHTML = `SYNC ${hours}:${minutes}<br>${tz}`;
+    }
+    
+    if (timeEl) {
+      timeEl.innerText = now.toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+      });
+    }
+  };
+
+  updateClock();
+  const clockInterval = setInterval(updateClock, 1000);
+
+  // Store interval on the window or a global to clear it if needed
+  window.dashboardClock = clockInterval;
 }

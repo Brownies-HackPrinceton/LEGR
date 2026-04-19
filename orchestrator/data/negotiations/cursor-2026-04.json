@@ -1,0 +1,31 @@
+{
+  "vendor": "Cursor",
+  "vendor_email": "renewals@cursor.com",
+  "original_price": 500.0,
+  "target_discount_pct": 20.0,
+  "floor_discount_pct": 5.0,
+  "company_id": "00000001-0000-4000-8000-000000000001",
+  "thread_id": "",
+  "machine_id": "dbc23cd8-a0f8-46bf-8543-4f6e0745be9a",
+  "status": "waiting_reply",
+  "current_round": 1,
+  "current_offer_pct": null,
+  "subject_line": "Cursor renewal \u2014 pricing adjustment",
+  "thread": [
+    {
+      "direction": "outbound",
+      "body": "**Subject: Cursor Renewal \u2013 Pricing Discussion**\n\nHi [Account Manager's Name],\n\nWe're coming up on our renewal and want to continue using Cursor \u2014 the team has found it genuinely useful. That said, as a startup we're under real pressure to tighten tooling costs, and we're seeing competitive options (Copilot, Windsurf, Supermaven) at significantly lower price points that are hard to ignore at our current budget level.\n\nWe'd like to stay with Cursor, but we need the numbers to work. Our ask is a 20% discount, bringing us to $400/mo. In exchange, we're happy to commit to an annual contract upfront rather than month-to-month \u2014 which gives you guaranteed revenue and removes any churn risk on your end.\n\nCan you make this work? Happy to jump on a quick call if that's easier. Let me know either way, as we need to make a decision before [renewal date].\n\n[Your Name]\n[Company]",
+      "timestamp": "2026-04-19T01:41:11.600935+00:00",
+      "round_num": 1,
+      "classification": null
+    }
+  ],
+  "leverage_used": [
+    "competitive_alternatives",
+    "annual_commitment"
+  ],
+  "reasoning_log": [],
+  "created_at": "2026-04-19T01:41:03.630336+00:00",
+  "updated_at": "2026-04-19T01:41:11.601020+00:00",
+  "closed_at": null
+}

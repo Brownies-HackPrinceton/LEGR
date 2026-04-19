@@ -13,7 +13,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from agents.ask_anything import ask_anything
-from orchestrator import route_transaction
+from orchestrator import route_transaction, spawn_machine
 from services.command_router import route_command
 from services.imessage_sender import FOUNDER_PHONE, help_menu_text, send_boot_greeting, send_to_founder
 from supabase_client import get_supabase
@@ -199,7 +199,7 @@ async def list_negotiations():
 
 @app.get("/activity")
 async def activity_feed():
-    """Dashboard activity feed — last 50 Flux actions."""
+    """Dashboard activity feed — last 50 Celsius actions."""
     alerts = (
         get_supabase()
         .table("agent_alerts")
@@ -223,6 +223,83 @@ async def activity_feed():
     return {"alerts": alerts, "autonomous_actions": actions}
 
 
+@app.get("/machines")
+async def list_machines():
+    """List active Dedalus Machines (for dashboard)."""
+    resp = (
+        get_supabase()
+        .table("active_machines")
+        .select("*")
+        .order("spawned_at", desc=True)
+        .limit(50)
+        .execute()
+    )
+    machines = resp.data or []
+    active = [m for m in machines if m.get("status") in ("running", "sleeping")]
+    closed = [m for m in machines if m.get("status") == "closed"]
+    return {
+        "machines": machines,
+        "active_count": len(active),
+        "closed_count": len(closed),
+        "total": len(machines),
+    }
+
+
+@app.post("/machines/{machine_id}/kill")
+async def kill_machine(machine_id: str):
+    """Emergency stop a Machine."""
+    import signal as sig
+    resp = (
+        get_supabase()
+        .table("active_machines")
+        .select("*")
+        .eq("id", machine_id)
+        .limit(1)
+        .execute()
+    )
+    rows = resp.data or []
+    if not rows:
+        return {"error": "machine_not_found"}
+    machine = rows[0]
+    pid = machine.get("pid")
+    if pid:
+        try:
+            os.kill(pid, sig.SIGTERM)
+        except ProcessLookupError:
+            pass
+    get_supabase().table("active_machines").update({
+        "status": "closed",
+        "outcome": "killed",
+        "closed_at": datetime.now(timezone.utc).isoformat(),
+    }).eq("id", machine_id).execute()
+    return {"status": "killed", "machine_id": machine_id}
+
+
+@app.post("/machines/spawn")
+async def spawn_machine_endpoint(request: Request):
+    """Manually spawn a negotiation Machine."""
+    body = await request.json()
+    vendor = body.get("vendor")
+    price = float(body.get("price", 0))
+    target_pct = float(body.get("target_pct", 20))
+    company_id = body.get("company_id", _COMPANY_ID)
+    thread_id = body.get("thread_id", "")
+    demo = body.get("demo", True)
+
+    if not vendor or not price:
+        return {"error": "vendor and price are required"}
+
+    result = await spawn_machine(
+        vendor=vendor,
+        price=price,
+        target_pct=target_pct,
+        company_id=company_id,
+        thread_id=thread_id,
+        demo=demo,
+    )
+    return result
+
+
 # ── Core iMessage handler ─────────────────────────────────────────────────────
 
 @app.post("/webhooks/imessage")
@@ -244,7 +321,12 @@ async def on_imessage(request: Request):
     if not raw_text:
         return {"status": "ignored", "reason": "empty_body"}
 
-    # ── 1. Employee thread? ───────────────────────────────────────────────────
+    # ── 1. Save to short-term memory ──────────────────────────────────────────
+    from services.memory import save_chat_message
+    if sender_phone:
+        await save_chat_message(sender_phone, "user", raw_text, _COMPANY_ID)
+
+    # ── 2. Employee thread? ───────────────────────────────────────────────────
     from services.employee_threads import handle_employee_reply
 
     founder_phone = FOUNDER_PHONE
@@ -254,7 +336,7 @@ async def on_imessage(request: Request):
             await send_to_founder(result["message"], pillar="compliance")
         return {"status": "employee_reply", **result}
 
-    # ── 2–5: Founder messages ─────────────────────────────────────────────────
+    # ── 3–6: Founder messages ─────────────────────────────────────────────────
     low_stripped = raw_text.strip().lower()
     if low_stripped in _MENU_WORDS:
         await send_to_founder(help_menu_text())
@@ -299,12 +381,39 @@ async def on_imessage(request: Request):
                     suggestion_count=2,
                 )
             elif alert_type == "negotiate_pending":
-                await send_to_founder(
-                    f"✅ Negotiation email queued for {vendor}. I'll report back when they respond.",
-                    pillar="saas_sprawl",
-                    with_suggestions=True,
-                    suggestion_count=2,
+                # Spawn a Dedalus Machine for long-running negotiation
+                price = float(alert.get("metadata", {}).get("price", 0) if isinstance(alert.get("metadata"), dict) else 0) or 500.0
+                target = float(alert.get("metadata", {}).get("target_pct", 0) if isinstance(alert.get("metadata"), dict) else 0) or 20.0
+                machine_result = await spawn_machine(
+                    vendor=vendor or "vendor",
+                    price=price,
+                    target_pct=target,
+                    company_id=_COMPANY_ID,
+                    demo=False,
                 )
+                status = machine_result.get("status", "")
+                if status == "spawned":
+                    await send_to_founder(
+                        f"🤖 Negotiation Machine launched for {vendor}! (PID {machine_result.get('pid')}). "
+                        f"I'll get back to you when they reply. In the meantime, do you want help with anything else?",
+                        pillar="saas_sprawl",
+                        with_suggestions=True,
+                        suggestion_count=2,
+                    )
+                elif status == "already_running":
+                    await send_to_founder(
+                        f"⚡ A negotiation Machine for {vendor} is already running.",
+                        pillar="saas_sprawl",
+                        with_suggestions=True,
+                        suggestion_count=2,
+                    )
+                else:
+                    await send_to_founder(
+                        f"✅ Negotiation email sent to {vendor}. I'll get back to you when they reply! In the meantime, do you want help with anything else?",
+                        pillar="saas_sprawl",
+                        with_suggestions=True,
+                        suggestion_count=2,
+                    )
             else:
                 await send_to_founder(
                     f"✅ Done — {alert.get('message', '')[:60]}",

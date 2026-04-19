@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import os
+import subprocess
+import sys
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Literal, NotRequired, Optional, TypedDict
 
 from dedalus_labs import AsyncDedalus, DedalusRunner
@@ -95,6 +98,79 @@ async def flag_for_founder(txn: TransactionIn) -> Dict[str, Any]:
 
 async def negotiate_agent(vendor: str, current_price: float, target_discount: float, company_id: str) -> Dict[str, Any]:
     return await negotiate_draft_email(vendor, float(current_price), float(target_discount), company_id)
+
+
+# ── Machine spawner (long-running negotiation) ────────────────────────────────
+
+def _check_duplicate_machine(company_id: str, vendor: str) -> bool:
+    """Check if a Machine is already running for this vendor."""
+    try:
+        resp = (
+            get_supabase()
+            .table("active_machines")
+            .select("id, status")
+            .eq("company_id", company_id)
+            .eq("vendor", vendor)
+            .in_("status", ["running", "sleeping"])
+            .execute()
+        )
+        return bool(resp.data)
+    except Exception:
+        return False
+
+
+async def spawn_machine(
+    vendor: str,
+    price: float,
+    target_pct: float,
+    company_id: str,
+    thread_id: str = "",
+    vendor_email: str = "",
+    demo: bool = True,
+) -> Dict[str, Any]:
+    """Spawn a Dedalus Machine as a subprocess for long-running negotiation."""
+    # Check for duplicates
+    if _check_duplicate_machine(company_id, vendor):
+        return {
+            "agent": "negotiate_machine",
+            "status": "already_running",
+            "message": f"A negotiation Machine for {vendor} is already active.",
+        }
+
+    # Build subprocess command
+    machine_script = os.path.join(os.path.dirname(__file__), "machine", "loop.py")
+    cmd = [
+        sys.executable, machine_script,
+        "--vendor", vendor,
+        "--price", str(price),
+        "--target-pct", str(target_pct),
+        "--company-id", company_id,
+    ]
+    if thread_id:
+        cmd.extend(["--thread-id", thread_id])
+    if vendor_email:
+        cmd.extend(["--vendor-email", vendor_email])
+    if demo:
+        cmd.append("--demo")
+    cmd.extend(["--poll-interval", "10"])
+
+    # Spawn as detached subprocess
+    process = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,  # survives parent exit
+        cwd=os.path.dirname(__file__),
+    )
+
+    return {
+        "agent": "negotiate_machine",
+        "status": "spawned",
+        "pid": process.pid,
+        "vendor": vendor,
+        "target_pct": target_pct,
+        "message": f"Machine spawned for {vendor} negotiation (PID {process.pid}). Monitoring inbox for replies.",
+    }
 
 
 # ── Alert writer (restraint-filtered) ────────────────────────────────────────

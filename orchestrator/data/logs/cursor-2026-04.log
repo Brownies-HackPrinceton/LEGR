@@ -1,0 +1,92 @@
+[2026-04-19T01:13:20Z] Machine created: target=20.0%, price=$500.0
+[2026-04-19T01:13:21Z] Drafting initial email via reasoner
+[2026-04-19T01:13:28Z] DEMO OUTBOX: [round 1] → renewals@cursor.com | Subject: Cursor renewal — pricing adjustment
+[2026-04-19T01:13:50Z] Round 1: counter → send_counter
+[2026-04-19T01:14:19Z] Round 2: counter → send_counter
+[2026-04-19T01:14:40Z] DEMO OUTBOX: [round 3] → renewals@cursor.com | Subject: Re: Cursor renewal — pricing adjustment
+[2026-04-19T01:14:53Z] Round 3: accept → accept
+[2026-04-19T01:14:53Z] Machine exited: closed_won
+[2026-04-19T01:41:03Z] Machine created: target=20.0%, price=$500.0
+[2026-04-19T01:41:04Z] Drafting initial email via reasoner
+[2026-04-19T01:41:11Z] OUTBOX: no SMTP credentials, email saved to /Users/karanpratapsingh/Documents/GitHub/Vertex/orchestrator/machine/../data/receipts/cursor-round-1.eml
+[2026-04-19T01:41:22Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:41:32Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:41:43Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:41:53Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:42:03Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:42:14Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:42:24Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:42:34Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:42:44Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:42:55Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:43:05Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:43:15Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:43:25Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:43:36Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:43:46Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:43:56Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:44:06Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:44:17Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:44:27Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:44:37Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:44:47Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:44:58Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:45:08Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:45:18Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:45:29Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:45:39Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:45:49Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:45:59Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:46:10Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:46:20Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:46:30Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:46:40Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:46:51Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:47:01Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:47:11Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:47:21Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:47:32Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:47:42Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:47:52Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:48:02Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:48:13Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:48:23Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:48:33Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:48:43Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:48:54Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:49:04Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:49:14Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:49:24Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:49:35Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:49:45Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:49:55Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:50:05Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:50:16Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:50:26Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:50:36Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:50:46Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:50:57Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:51:07Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:51:17Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:51:27Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:51:38Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:51:48Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:51:58Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:52:09Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:52:19Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:52:30Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:52:40Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:52:50Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:53:00Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:53:11Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:53:21Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:53:31Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:53:41Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:53:52Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:54:02Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:54:12Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:54:22Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:54:33Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:54:43Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:54:53Z] IMAP: no credentials configured, skipping poll
+[2026-04-19T01:54:56Z] Machine paused by shutdown signal

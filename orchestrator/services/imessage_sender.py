@@ -7,14 +7,19 @@ import httpx
 
 BRIDGE_URL = os.getenv("IMESSAGE_BRIDGE_URL", "http://127.0.0.1:3099")
 FOUNDER_PHONE = (os.getenv("IMESSAGE_FOUNDER_PHONE") or "").strip()
+_COMPANY_ID = os.getenv("FLUX_COMPANY_ID", "00000001-0000-4000-8000-000000000001")
 
 
 async def send_text(to: str, body: str) -> bool:
     try:
+        from services.memory import save_chat_message
+        await save_chat_message(to, "assistant", body, _COMPANY_ID)
+        
         async with httpx.AsyncClient(timeout=10) as c:
             r = await c.post(f"{BRIDGE_URL}/send", json={"to": to, "text": body})
             return r.status_code == 200 and bool(r.json().get("ok"))
-    except Exception:
+    except Exception as e:
+        print(f"Failed to send text to {to}: {e}")
         return False
 
 
@@ -22,7 +27,7 @@ async def send_boot_greeting() -> bool:
     if not FOUNDER_PHONE:
         return False
     msg = (
-        "Flux is watching your spend. Ask me anything — "
+        "Celsius is watching your spend. Ask me anything — "
         "what you burned on AI, which SaaS seats are dormant, upcoming renewals. "
         "I'll ping you when something needs a decision."
     )
