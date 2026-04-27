@@ -1,11 +1,14 @@
 # LEGR
 
+> 🏆 **Winner — Best Business & Enterprise Track**
+> 🏆 **Winner — Best Use of Eragon**
+> *HackPrinceton Spring 2026*
+
 **Rocket Money on steroids for startups: a fleet of autonomous finance agents, long-running on Dedalus, conversational through Photon.**
 
 LEGR handles the boring, expensive work of running a startup's finances — finding wasted AI spend, killing zombie SaaS subs, and negotiating renewals autonomously — all from inside your iMessage.
 
 ---
-
 ## What it does
 
 🤖 **AI Spend Optimization** — catches wrong-model routing (Opus calls that should've been Haiku), idle credits, forgotten batch jobs.
