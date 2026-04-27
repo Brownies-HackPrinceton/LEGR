@@ -1,7 +1,7 @@
 # LEGR
 
 > 🏆 **Winner — Best Business & Enterprise Track**
-> 🏆 **Winner — Best Use of Eragon**
+> 🏆 **Winner — Best Use of Enterpro**
 > *HackPrinceton Spring 2026*
 
 **Rocket Money on steroids for startups: a fleet of autonomous finance agents, long-running on Dedalus, conversational through Photon.**
