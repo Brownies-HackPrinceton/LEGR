@@ -6,6 +6,7 @@ import { renderMetrics } from '../components/metrics.js';
 import { renderTable, badge, formatCurrency } from '../components/tables.js';
 import { createBarChart, createDoughnutChart } from '../components/charts.js';
 import { fetchSubscriptions, fetchSeatUsage } from '../lib/api.js';
+import { renderAlert, bindAlertActions } from '../components/alerts.js';
 
 export function renderSaaSSprawl() {
   const metricsHTML = renderMetrics([
@@ -15,8 +16,16 @@ export function renderSaaSSprawl() {
     { id: 'zombieSubscriptions',  label: 'Zombie Subscriptions',    value: '—', sub: 'Near-zero usage', color: 'red'    },
   ]);
 
+  const alertHTML = renderAlert({
+    type: 'critical',
+    title: '3 Critical · 2 Renewals Soon',
+    desc: 'OpenAI batch job running GPT-4 on invoice classification — $2,840/mo potential savings identified',
+    action: 'View',
+  });
+
   return `
     <div class="page" id="page-saas-sprawl">
+      ${alertHTML}
       ${metricsHTML}
 
       <div class="charts-grid">
@@ -52,6 +61,7 @@ export function renderSaaSSprawl() {
 }
 
 export function initSaaSSprawlCharts() {
+  bindAlertActions();
   Promise.all([fetchSubscriptions(), fetchSeatUsage()]).then(([subs, seats]) => {
     if (!subs.length) return;
 

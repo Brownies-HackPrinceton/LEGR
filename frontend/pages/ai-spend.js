@@ -2,7 +2,7 @@
 // AI SPEND PAGE — Deep dive into AI API costs
 // ============================================================
 
-import { renderAlert } from '../components/alerts.js';
+import { renderAlert, bindAlertActions } from '../components/alerts.js';
 import { renderMetrics } from '../components/metrics.js';
 import { renderTable, formatCurrency, formatNumber } from '../components/tables.js';
 import { createLineChart, createBarChart } from '../components/charts.js';
@@ -16,8 +16,16 @@ export function renderAISpend() {
     { id: 'avgCostPerCall',    label: 'Avg Cost / Call',    value: '—', sub: 'Across all providers',          color: 'blue'   },
   ]);
 
+  const alertHTML = renderAlert({
+    type: 'critical',
+    title: '3 Critical · 2 Renewals Soon',
+    desc: 'OpenAI batch job running GPT-4 on invoice classification — $2,840/mo potential savings identified',
+    action: 'View',
+  });
+
   return `
     <div class="page" id="page-ai-spend">
+      ${alertHTML}
       ${metricsHTML}
 
       <div class="charts-grid">
@@ -47,6 +55,7 @@ export function renderAISpend() {
 }
 
 export function initAISpendCharts() {
+  bindAlertActions();
   fetchAIUsage().then(rows => {
     if (!rows.length) return;
 

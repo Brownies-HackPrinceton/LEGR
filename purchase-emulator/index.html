@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGR | Terminal</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="terminal-card">
+        <div class="header">
+            <h1>Pos Terminal</h1>
+            <div class="legr-logo">LEGR</div>
+        </div>
+        
+        <div class="content">
+            <div class="input-group">
+                <label for="merchant">Merchant</label>
+                <input type="text" id="merchant" placeholder="e.g. OpenAI, Starbucks, Uber" value="OpenAI">
+            </div>
+
+            <div class="input-group">
+                <label for="amount">Transaction Amount</label>
+                <div class="amount-input-container">
+                    <span class="currency-symbol">$</span>
+                    <input type="number" id="amount" placeholder="0.00" step="0.01" value="4200.00">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="pillar">Pillar (Category)</label>
+                <select id="pillar">
+                    <option value="ai_spend">AI Spend</option>
+                    <option value="saas_sprawl">SaaS Sprawl</option>
+                    <option value="compliance">Compliance</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="employee_id">Employee</label>
+                <select id="employee_id">
+                    <option value="00000001-0000-4000-8000-000000000010">Sarah J. (Head of Design)</option>
+                    <option value="00000001-0000-4000-8000-000000000011">Marcus K. (Senior Engineer)</option>
+                    <option value="00000001-0000-4000-8000-000000000012">Alex L. (Product Manager)</option>
+                    <option value="00000001-0000-4000-8000-000000000013">Tom R. (Sales Lead)</option>
+                    <option value="00000001-0000-4000-8000-000000000014">Priya S. (Engineer)</option>
+                    <option value="00000001-0000-4000-8000-000000000015">Jordan M. (Engineer)</option>
+                    <option value="00000001-0000-4000-8000-000000000016">Casey W. (Designer)</option>
+                    <option value="00000001-0000-4000-8000-000000000017">Riley B. (Marketing)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="memo">Memo (Optional)</label>
+                <input type="text" id="memo" placeholder="Lunch with client, API credits, etc.">
+            </div>
+
+            <button id="swipe-button" class="swipe-btn">
+                <span>SWIPE CARD</span>
+            </button>
+
+            <div id="status-tray" class="status-tray">
+                <p id="status-message"></p>
+            </div>
+
+            <div class="recent-swipes">
+                <h2>Recent Swipes</h2>
+                <div id="swipes-list">
+                    <!-- Dynamic swips here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

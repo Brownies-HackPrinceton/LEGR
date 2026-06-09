@@ -6,9 +6,15 @@ import { renderMetrics } from '../components/metrics.js';
 import { createLineChart, createDoughnutChart } from '../components/charts.js';
 import { metrics, spendTrend, activities } from '../data.js';
 import { fetchMetrics, fetchAlerts, fetchSpendTrend } from '../lib/api.js';
+import { renderAlert, bindAlertActions } from '../components/alerts.js';
 
 export function renderDashboard() {
-  const alertHTML = ``;
+  const alertHTML = renderAlert({
+    type: 'critical',
+    title: '3 Critical · 2 Renewals Soon',
+    desc: 'OpenAI batch job running GPT-4 on invoice classification — $2,840/mo potential savings identified',
+    action: 'View',
+  });
 
   const metricsHTML = renderMetrics([
     {
@@ -74,6 +80,7 @@ export function renderDashboard() {
           <p>the fiscal pulse of your company, in real time</p>
         </div>
         <div class="dashboard-time-box">
+          <div class="sync-block" id="sync-time">SYNC --:--<br>---</div>
           <div class="time-block" id="current-time">--:--:--</div>
         </div>
       </div>
@@ -137,6 +144,8 @@ export function initDashboardCharts() {
   });
 
   // ── Step 2: Live activity feed + alert banner ─────────────
+  bindAlertActions(); // Binds click handlers to the top banner
+
   fetchAlerts().then(alerts => {
 const feed = document.getElementById('activity-feed');
     if (!feed || !alerts.length) return;
@@ -152,13 +161,16 @@ const feed = document.getElementById('activity-feed');
       if (h < 24) return `${h}h ago`;
       return `${Math.floor(h / 24)}d ago`;
     };
-    feed.innerHTML = alerts.map(a => {
+    feed.innerHTML = alerts.map((a, index) => {
       const meta = pillarMeta[a.pillar] || { color: 'red', label: 'ALERT' };
+      const bauhausClasses = ['purple', 'blue', 'orange'];
+      const iconClass = bauhausClasses[index % bauhausClasses.length];
+      
       const badge = a.requires_action
         ? `<span class="activity-badge" style="color:var(--orange);">ACTION NEEDED</span>` : '';
       return `
         <div class="activity-item">
-          <div class="activity-icon ${meta.color}"></div>
+          <div class="activity-icon ${iconClass}"></div>
           <div class="activity-content">
             <div class="activity-text">${a.message}</div>
             <div class="activity-time">${timeAgo(a.created_at)} · ${meta.label} ${badge}</div>
@@ -200,7 +212,18 @@ const feed = document.getElementById('activity-feed');
   const updateClock = () => {
     const now = new Date();
     
+    // Timezone 3-letter code (crude but works for demo)
+    const tz = now.toLocaleTimeString('en-us', {timeZoneName:'short'}).split(' ').pop();
+    
+    const syncEl = document.getElementById('sync-time');
     const timeEl = document.getElementById('current-time');
+    
+    if (syncEl) {
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      syncEl.innerHTML = `SYNC ${hours}:${minutes}<br>${tz}`;
+    }
+    
     if (timeEl) {
       timeEl.innerText = now.toLocaleTimeString('en-US', { 
         hour12: false, 

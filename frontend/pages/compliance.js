@@ -6,6 +6,7 @@ import { renderMetrics } from '../components/metrics.js';
 import { renderTable, badge, formatCurrency } from '../components/tables.js';
 import { createDoughnutChart } from '../components/charts.js';
 import { fetchComplianceTransactions, fetchEmployees } from '../lib/api.js';
+import { renderAlert, bindAlertActions } from '../components/alerts.js';
 
 export function renderCompliance() {
   const metricsHTML = renderMetrics([
@@ -15,8 +16,16 @@ export function renderCompliance() {
     { id: 'pendingExpenses', label: 'Pending Review',  value: '—', sub: 'Awaiting decision',color: 'orange' },
   ]);
 
+  const alertHTML = renderAlert({
+    type: 'critical',
+    title: '3 Critical · 2 Renewals Soon',
+    desc: 'OpenAI batch job running GPT-4 on invoice classification — $2,840/mo potential savings identified',
+    action: 'View',
+  });
+
   return `
     <div class="page" id="page-compliance">
+      ${alertHTML}
       ${metricsHTML}
 
       <div class="charts-grid">
@@ -45,6 +54,7 @@ export function renderCompliance() {
 }
 
 export function initComplianceCharts() {
+  bindAlertActions();
   Promise.all([fetchComplianceTransactions(), fetchEmployees()]).then(([txns, emps]) => {
     if (!txns.length) return;
 
