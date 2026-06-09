@@ -1,0 +1,193 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --yellow: #FEF08A;
+  --purple: #EBE1FB;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --orange: #f59e0b;
+  --black: #000000;
+  --white: #ffffff;
+  --border-width: 3px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Space+Grotesk', sans-serif;
+}
+
+body {
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.terminal-card {
+  background-color: white;
+  border: var(--border-width) solid var(--black);
+  box-shadow: 10px 10px 0px var(--black);
+  width: 100%;
+  max-width: 450px;
+  overflow: hidden;
+}
+
+.header {
+  background-color: var(--black);
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 1.2rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.legr-logo {
+  font-weight: 800;
+  background-color: var(--yellow);
+  color: var(--black);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.content {
+  padding: 30px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.input-group input, .input-group select {
+  width: 100%;
+  padding: 12px;
+  border: var(--border-width) solid var(--black);
+  font-size: 1.1rem;
+  font-weight: 500;
+  outline: none;
+  background-color: #fafafa;
+}
+
+.input-group input:focus {
+  background-color: var(--purple);
+}
+
+.amount-input-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.currency-symbol {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.swipe-btn {
+  width: 100%;
+  padding: 20px;
+  background-color: var(--green);
+  color: var(--black);
+  border: var(--border-width) solid var(--black);
+  font-size: 1.2rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 6px 6px 0px var(--black);
+  transition: all 0.1s;
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.swipe-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px var(--black);
+}
+
+.swipe-btn:active {
+  transform: translate(4px, 4px);
+  box-shadow: 0px 0px 0px var(--black);
+}
+
+.swipe-btn.loading {
+  background-color: #999;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.status-tray {
+  margin-top: 25px;
+  padding: 15px;
+  border: var(--border-width) solid var(--black);
+  display: none;
+  animation: slideUp 0.3s ease-out;
+}
+
+.status-tray.success {
+  display: block;
+  background-color: var(--yellow);
+}
+
+.status-tray.error {
+  display: block;
+  background-color: var(--red);
+  color: white;
+}
+
+.status-tray.warning {
+  display: block;
+  background-color: var(--orange);
+  color: black;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.recent-swipes {
+  margin-top: 30px;
+  border-top: 2px dashed var(--black);
+  padding-top: 20px;
+}
+
+.recent-swipes h2 {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  margin-bottom: 15px;
+}
+
+.swipe-pill {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #eee;
+  border: 1px solid var(--black);
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+}
+
+.swipe-pill .merchant { font-weight: 700; }
+.swipe-pill .amount { font-family: monospace; }

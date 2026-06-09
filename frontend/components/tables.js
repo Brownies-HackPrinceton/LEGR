@@ -47,7 +47,9 @@ export function renderTable(config) {
  * Render a status badge
  */
 export function badge(status) {
-  return `<span class="badge ${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+  if (!status) return `<span class="badge pending">Pending</span>`;
+  const label = status.charAt(0).toUpperCase() + status.slice(1);
+  return `<span class="badge ${status}">${label}</span>`;
 }
 
 /**

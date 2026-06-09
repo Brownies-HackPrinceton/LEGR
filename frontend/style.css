@@ -917,9 +917,23 @@ tbody tr:last-child td {
 }
 
 .activity-icon.green { background: var(--green); transform: rotate(45deg); }
-.activity-icon.purple { background: var(--purple); border-radius: 50%; }
-.activity-icon.orange { background: var(--orange); }
-.activity-icon.blue { background: var(--blue); }
+.activity-icon.purple { 
+  background: transparent !important;
+  border: none;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-bottom: 20px solid var(--red); /* AI -> Red Triangle */
+  border-top: none;
+}
+.activity-icon.orange { 
+  background: var(--orange); /* Compliance -> Orange Circle */
+  border-radius: 50%;
+}
+.activity-icon.blue { 
+  background: var(--blue); /* SaaS -> Blue Square */
+}
 .activity-icon.red { background: var(--red); border-radius: 50%; }
 
 .activity-content {
